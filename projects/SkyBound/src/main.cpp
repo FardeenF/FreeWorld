@@ -2,31 +2,36 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-int main() {
-	// Initialize GLFW
+GLFWwindow* window;
+
+bool initGLFW() {
 	if (glfwInit() == GLFW_FALSE) {
-		std::cout << "Failed to initialize Glad" << std::endl;
-		return 1;
+		std::cout << "Failed to Initialize GLFW" << std::endl;
+		return false;
 	}
 
-	// Create a new GLFW window
-	GLFWwindow* window = glfwCreateWindow(800, 800, "SkyBound", nullptr, nullptr);
-	// We want GL commands to be executed for our window, so we make our window's context the current one
+	//Create a new GLFW window
+	window = glfwCreateWindow(800, 800, "INFR1350U", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
+	return true;
+}
 
-
-	// Initialize GLAD
-	// Let glad know what function loader we are using (will call gl commands via glfw)
+bool initGLAD() {
 	if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == 0) {
 		std::cout << "Failed to initialize Glad" << std::endl;
-		return 2;
+		return false;
 	}
+}
 
-	// Display our GPU and OpenGL version
-	std::cout << glGetString(GL_RENDERER) << std::endl;
-	std::cout << glGetString(GL_VERSION) << std::endl;
+int main() {
+	//Initialize GLFW
+	if (!initGLFW())
+		return 1;
 
+	//Initialize GLAD
+	if (!initGLAD())
+		return 1;
 
 
 	// Run as long as the window is open
@@ -43,6 +48,9 @@ int main() {
 		glfwSwapBuffers(window);
 	}
 
+	// Display our GPU and OpenGL version
+	std::cout << glGetString(GL_RENDERER) << std::endl;
+	std::cout << glGetString(GL_VERSION) << std::endl;
 
 
 	return 0;
