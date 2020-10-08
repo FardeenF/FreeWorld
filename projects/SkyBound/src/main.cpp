@@ -11,7 +11,7 @@ bool initGLFW() {
 	}
 
 	//Create a new GLFW window
-	window = glfwCreateWindow(800, 800, "INFR1350U", nullptr, nullptr);
+	window = glfwCreateWindow(800, 800, "Skybound", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	return true;
