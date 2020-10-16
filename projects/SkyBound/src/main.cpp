@@ -1,8 +1,35 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <Logging.h>
 #include <iostream>
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
+#include <filesystem>
+#include <json.hpp>
+#include <fstream>
+
+#include <GLM/glm.hpp>
+#include <GLM/gtc/matrix_transform.hpp>
+#include <GLM/gtc/type_ptr.hpp>
+
+#include "IndexBuffer.h"
+#include "VertexBuffer.h"
+#include "VertexArrayObject.h"
+#include "Shader.h"
+#include "Camera.h"
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include "InputHelpers.h"
+#include "MeshBuilder.h"
+#include "MeshFactory.h"
+//Includes the obj loader header
+#include "ObjLoader.h"
+//Includes the not-obj header
+#include "VertexTypes.h"
+
 GLFWwindow* window;
+Camera::sptr camera = nullptr;
 
 bool initGLFW() {
 	if (glfwInit() == GLFW_FALSE) {
@@ -25,6 +52,7 @@ bool initGLAD() {
 }
 
 int main() {
+
 	//Initialize GLFW
 	if (!initGLFW())
 		return 1;
@@ -34,18 +62,108 @@ int main() {
 		return 1;
 
 
+	//Testobj.txt
+	std::vector<glm::vec3> positions;
+	std::vector<glm::vec3> normals;
+	std::vector<glm::vec2> uvs;
+
+	VertexArrayObject::sptr theVAO = nullptr;
+	bool loader = ObjLoader::LoadFromFile("TextObject1.obj", positions, uvs, normals);
+
+	theVAO = VertexArrayObject::Create();
+	VertexBuffer::sptr vertices = VertexBuffer::Create();
+	vertices->LoadData(positions.data(), positions.size());
+
+	VertexBuffer::sptr _normals = VertexBuffer::Create();
+	_normals->LoadData(normals.data(), normals.size());
+
+	theVAO = VertexArrayObject::Create();
+
+	theVAO->AddVertexBuffer(vertices, {
+		BufferAttribute(0, 3, GL_FLOAT, false, 0, NULL)
+		});
+	theVAO->AddVertexBuffer(_normals, {
+		BufferAttribute(2, 3, GL_FLOAT, false, 0, NULL)
+		});
+
+
+	//Shader setup
+	Shader::sptr shader = Shader::Create();
+	shader->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
+	shader->LoadShaderPartFromFile("shaders/frag_blinn_phong.glsl", GL_FRAGMENT_SHADER);
+	shader->Link();
+
+	glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 2.0f);
+	glm::vec3 lightCol = glm::vec3(1.0f, 1.0f, 1.0f);
+	float     lightAmbientPow = 0.05f;
+	float     lightSpecularPow = 10.0f;
+	glm::vec3 ambientCol = glm::vec3(1.0f);
+	float     ambientPow = 1.0f;
+	float     shininess = 0.2f;
+
+	shader->SetUniform("u_LightPos", lightPos);
+	shader->SetUniform("inColor", glm::vec3(1.0f));
+	shader->SetUniform("u_LightCol", lightCol);
+	shader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
+	shader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
+	shader->SetUniform("u_AmbientCol", ambientCol);
+	shader->SetUniform("u_AmbientStrength", ambientPow);
+	shader->SetUniform("u_Shininess", shininess);
+
+	//Transforms
+	glm::mat4 transform = glm::mat4(0.8f);
+	glm::mat4 transform2 = glm::mat4(1.0f);
+	glm::mat4 transform3 = glm::mat4(1.0f);
+	glm::mat4 transform4 = glm::mat4(1.2f);
+
+	//Camera Setup
+	camera = Camera::Create();
+	camera->SetPosition(glm::vec3(0, 1, 10)); // Set initial position
+	camera->SetUp(glm::vec3(0, 0, 1)); // Use a z-up coordinate system
+	camera->LookAt(glm::vec3(0.0f)); // Look at center of the screen
+	camera->SetFovDegrees(90.0f); // Set an initial FOV
+
+	double lastFrame = glfwGetTime();
 	// Run as long as the window is open
 	while (!glfwWindowShouldClose(window)) {
 		// Poll for events from windows (clicks, keypressed, closing, all that)
 		glfwPollEvents();
+		double thisFrame = glfwGetTime();
+		float dt = static_cast<float>(thisFrame - lastFrame);
 
+
+
+		transform = glm::rotate_slow(glm::mat4(1.0f), static_cast<float>(thisFrame), glm::vec3(0, 1, 0));
+		transform2 = transform * glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.0f, glm::sin(static_cast<float>(thisFrame))));
+
+		//transform4 =  glm::translate(glm::mat4(1.0f), glm::vec3(3, 0.0f, glm::sin(static_cast<float>(thisFrame))));
+		transform4 = glm::rotate_slow(glm::mat4(1.0f), static_cast<float>(thisFrame), glm::vec3(0, -1, 0));
+
+		transform4 = transform4 * glm::translate(glm::mat4(1.0f), glm::vec3(3, 0.0f, glm::sin(static_cast<float>(thisFrame))));
 		// Clear our screen every frame
 					//Red, Green, Blue, Alpha
 		glClearColor(0.3f, 0.4f, 0.4f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		shader->Bind();
+		shader->SetUniform("u_CamPos", camera->GetPosition());
+
+		shader->Bind();
+		shader->SetUniformMatrix("u_ModelViewProjection", camera->GetViewProjection() * transform);
+		shader->SetUniformMatrix("u_Model", transform);
+		shader->SetUniformMatrix("u_ModelRotation", glm::mat3(transform));
+		theVAO->Render();
+
+
+		
+		shader->UnBind();
+
+
+
+		//RenderImGui();
 		// Present our image to windows
 		glfwSwapBuffers(window);
+		lastFrame = thisFrame;
 	}
 
 	// Display our GPU and OpenGL version
