@@ -68,7 +68,7 @@ int main() {
 	std::vector<glm::vec2> uvs;
 
 	VertexArrayObject::sptr theVAO = nullptr;
-	bool loader = ObjLoader::LoadFromFile("TextObject1.obj", positions, uvs, normals);
+	bool loader = ObjLoader::LoadFromFile("SkyBoundCharacter.obj", positions, uvs, normals);
 
 	theVAO = VertexArrayObject::Create();
 	VertexBuffer::sptr vertices = VertexBuffer::Create();
@@ -124,6 +124,17 @@ int main() {
 	camera->SetFovDegrees(90.0f); // Set an initial FOV
 
 	double lastFrame = glfwGetTime();
+
+	//Model Matrix
+	//glm::mat4 transform = glm::mat4(1.0f); //Identity Matrix - Resetting the matrix
+
+	transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 0.0f));
+	transform = glm::rotate(transform, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
+
+
+
 	// Run as long as the window is open
 	while (!glfwWindowShouldClose(window)) {
 		// Poll for events from windows (clicks, keypressed, closing, all that)
@@ -133,7 +144,7 @@ int main() {
 
 
 
-		transform = glm::rotate_slow(glm::mat4(1.0f), static_cast<float>(thisFrame), glm::vec3(0, 1, 0));
+		//transform = glm::rotate_slow(glm::mat4(1.0f), static_cast<float>(thisFrame), glm::vec3(0, 1, 0));
 		transform2 = transform * glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.0f, glm::sin(static_cast<float>(thisFrame))));
 
 		//transform4 =  glm::translate(glm::mat4(1.0f), glm::vec3(3, 0.0f, glm::sin(static_cast<float>(thisFrame))));
