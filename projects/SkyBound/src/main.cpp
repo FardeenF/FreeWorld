@@ -51,6 +51,34 @@ bool initGLAD() {
 	}
 }
 
+
+GLfloat moveY = 0.0f;
+GLfloat moveX = 0.0f;
+
+void keyboard() {
+	/*if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		moveY -= 0.1;
+	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE)
+		moveY = 0.0f;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		moveY += 0.1;
+	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE)
+		moveY = 0.0f;
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		moveX -= 0.1;
+	else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE)
+		moveX = 0.0f;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		moveX += 0.1;
+	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE)
+		moveX = 0.0f;
+	*/
+
+	
+}
+
+
 int main() {
 
 	//Initialize GLFW
@@ -94,12 +122,12 @@ int main() {
 	shader->Link();
 
 	glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 2.0f);
-	glm::vec3 lightCol = glm::vec3(1.0f, 1.0f, 1.0f);
-	float     lightAmbientPow = 0.05f;
+	glm::vec3 lightCol = glm::vec3(50.0f, 20.0f, 10.0f);
+	float     lightAmbientPow = 0.1f;
 	float     lightSpecularPow = 10.0f;
-	glm::vec3 ambientCol = glm::vec3(1.0f);
+	glm::vec3 ambientCol = glm::vec3(20.0f);
 	float     ambientPow = 1.0f;
-	float     shininess = 0.2f;
+	float     shininess = 1.2f;
 
 	shader->SetUniform("u_LightPos", lightPos);
 	shader->SetUniform("inColor", glm::vec3(1.0f));
@@ -118,22 +146,22 @@ int main() {
 
 	//Camera Setup
 	camera = Camera::Create();
-	camera->SetPosition(glm::vec3(0, 1, 10)); // Set initial position
-	camera->SetUp(glm::vec3(0, 0, 1)); // Use a z-up coordinate system
-	camera->LookAt(glm::vec3(0.0f)); // Look at center of the screen
-	camera->SetFovDegrees(90.0f); // Set an initial FOV
+	camera->SetPosition(glm::vec3(0, -6.5f, 10)); // Set initial position
+	camera->SetUp(glm::vec3(0, -5, -5)); // Use a z-up coordinate system
+	camera->LookAt(glm::vec3(0.0f, 4.0f, 0.0f)); // Look at center of the screen
+	camera->SetFovDegrees(60.0f); // Set an initial FOV
 
 	double lastFrame = glfwGetTime();
 
 	//Model Matrix
 	//glm::mat4 transform = glm::mat4(1.0f); //Identity Matrix - Resetting the matrix
 
-	transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 0.0f));
+	transform = glm::translate(transform, glm::vec3(0.0f, 1.0f, 0.0f));
 	transform = glm::rotate(transform, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
 
-
+	
 
 	// Run as long as the window is open
 	while (!glfwWindowShouldClose(window)) {
@@ -142,15 +170,31 @@ int main() {
 		double thisFrame = glfwGetTime();
 		float dt = static_cast<float>(thisFrame - lastFrame);
 
-
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		{
+			transform = glm::translate(transform, glm::vec3(-3.0f, 0.0f, 0.0f) * dt);
+		}
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			transform = glm::translate(transform, glm::vec3(3.0f, 0.0f, 0.0f) * dt);
+		}
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		{
+			transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, -3.0f) * dt);
+		}
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		{
+			transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 3.0f) * dt);
+		}
 
 		//transform = glm::rotate_slow(glm::mat4(1.0f), static_cast<float>(thisFrame), glm::vec3(0, 1, 0));
-		transform2 = transform * glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.0f, glm::sin(static_cast<float>(thisFrame))));
+		keyboard();
+		transform = glm::translate(transform, glm::vec3(moveX, 0.0f, moveY) * dt);
 
 		//transform4 =  glm::translate(glm::mat4(1.0f), glm::vec3(3, 0.0f, glm::sin(static_cast<float>(thisFrame))));
-		transform4 = glm::rotate_slow(glm::mat4(1.0f), static_cast<float>(thisFrame), glm::vec3(0, -1, 0));
+		//transform4 = glm::rotate_slow(glm::mat4(1.0f), static_cast<float>(thisFrame), glm::vec3(0, -1, 0));
 
-		transform4 = transform4 * glm::translate(glm::mat4(1.0f), glm::vec3(3, 0.0f, glm::sin(static_cast<float>(thisFrame))));
+		//transform4 = transform4 * glm::translate(glm::mat4(1.0f), glm::vec3(3, 0.0f, glm::sin(static_cast<float>(thisFrame))));
 		// Clear our screen every frame
 					//Red, Green, Blue, Alpha
 		glClearColor(0.3f, 0.4f, 0.4f, 1.0f);
