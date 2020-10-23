@@ -38,7 +38,7 @@ bool initGLFW() {
 	}
 
 	//Create a new GLFW window
-	window = glfwCreateWindow(800, 800, "Skybound", nullptr, nullptr);
+	window = glfwCreateWindow(1024, 768, "Skybound", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	return true;
@@ -54,6 +54,10 @@ bool initGLAD() {
 
 GLfloat moveY = 0.0f;
 GLfloat moveX = 0.0f;
+
+GLfloat rotY = 0.0f;
+GLfloat rotX = 0.0f;
+
 
 
 
@@ -153,7 +157,7 @@ int main() {
 	camera->SetPosition(glm::vec3(0, -6.5f, 10)); // Set initial position
 	camera->SetUp(glm::vec3(0, -5, -5)); // Use a z-up coordinate system
 	camera->LookAt(glm::vec3(0.0f, 4.0f, 0.0f)); // Look at center of the screen
-	camera->SetFovDegrees(60.0f); // Set an initial FOV
+	camera->SetFovDegrees(75.0f); // Set an initial FOV
 
 	double lastFrame = glfwGetTime();
 
@@ -168,12 +172,15 @@ int main() {
 	transform2 = glm::translate(transform, glm::vec3(0.0f, -10.0f, 0.0f));
 	transform2 = glm::scale(transform, glm::vec3(0.5f, 0.5f, 0.5f));
 
+	
+
 	// Run as long as the window is open
 	while (!glfwWindowShouldClose(window)) {
 		// Poll for events from windows (clicks, keypressed, closing, all that)
 		glfwPollEvents();
 		double thisFrame = glfwGetTime();
 		float dt = static_cast<float>(thisFrame - lastFrame);
+
 
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		{
@@ -185,17 +192,24 @@ int main() {
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		{
-			transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, -3.0f) * dt);
-			//transform = glm::rotation(transform, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+			moveY = 6;
+			//transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+			rotY = -0.45;
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		{
-			transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 3.0f) * dt);
+			moveY = -6;
+			//transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 3.0f) * dt);
+			//rotX = 0.25;
+			rotY = 0.45;
 		}
 
-		//transform = glm::rotate_slow(glm::mat4(1.0f), static_cast<float>(thisFrame), glm::vec3(0, 1, 0));
-		
-		transform = glm::translate(transform, glm::vec3(moveX, 0.0f, moveY) * dt);
+		transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, -moveY) * dt);
+		transform = glm::rotate(transform, glm::radians(rotY), glm::vec3(0.0f, 1.0f, 0.0f));
+		transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, moveY) * dt);
+		rotY = 0;
+		moveY = 0;
+		moveX = 0;
 
 		//transform4 =  glm::translate(glm::mat4(1.0f), glm::vec3(3, 0.0f, glm::sin(static_cast<float>(thisFrame))));
 		//transform4 = glm::rotate_slow(glm::mat4(1.0f), static_cast<float>(thisFrame), glm::vec3(0, -1, 0));
