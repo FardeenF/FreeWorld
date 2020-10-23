@@ -55,28 +55,7 @@ bool initGLAD() {
 GLfloat moveY = 0.0f;
 GLfloat moveX = 0.0f;
 
-void keyboard() {
-	/*if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		moveY -= 0.1;
-	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE)
-		moveY = 0.0f;
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		moveY += 0.1;
-	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE)
-		moveY = 0.0f;
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		moveX -= 0.1;
-	else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE)
-		moveX = 0.0f;
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		moveX += 0.1;
-	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE)
-		moveX = 0.0f;
-	*/
-
-	
-}
 
 
 int main() {
@@ -90,7 +69,7 @@ int main() {
 		return 1;
 
 
-	//Testobj.txt
+	//Testobj.txt Load player
 	std::vector<glm::vec3> positions;
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec2> uvs;
@@ -111,6 +90,31 @@ int main() {
 		BufferAttribute(0, 3, GL_FLOAT, false, 0, NULL)
 		});
 	theVAO->AddVertexBuffer(_normals, {
+		BufferAttribute(2, 3, GL_FLOAT, false, 0, NULL)
+		});
+
+	// Load Island 1
+	std::vector<glm::vec3> positions1;
+	std::vector<glm::vec3> normals1;
+	std::vector<glm::vec2> uvs1;
+
+
+	VertexArrayObject::sptr island1VAO = nullptr;
+	bool loader1 = ObjLoader::LoadFromFile("TextObject1.obj", positions1, uvs1, normals1);
+
+	island1VAO = VertexArrayObject::Create();
+	VertexBuffer::sptr vertices1 = VertexBuffer::Create();
+	vertices1->LoadData(positions1.data(), positions1.size());
+
+	VertexBuffer::sptr _normals1 = VertexBuffer::Create();
+	_normals1->LoadData(normals1.data(), normals1.size());
+
+	island1VAO = VertexArrayObject::Create();
+
+	island1VAO->AddVertexBuffer(vertices1, {
+		BufferAttribute(0, 3, GL_FLOAT, false, 0, NULL)
+		});
+	island1VAO->AddVertexBuffer(_normals1, {
 		BufferAttribute(2, 3, GL_FLOAT, false, 0, NULL)
 		});
 
@@ -161,7 +165,8 @@ int main() {
 	transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
 
-	
+	transform2 = glm::translate(transform, glm::vec3(0.0f, -10.0f, 0.0f));
+	transform2 = glm::scale(transform, glm::vec3(0.5f, 0.5f, 0.5f));
 
 	// Run as long as the window is open
 	while (!glfwWindowShouldClose(window)) {
@@ -181,6 +186,7 @@ int main() {
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		{
 			transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, -3.0f) * dt);
+			//transform = glm::rotation(transform, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		{
@@ -188,7 +194,7 @@ int main() {
 		}
 
 		//transform = glm::rotate_slow(glm::mat4(1.0f), static_cast<float>(thisFrame), glm::vec3(0, 1, 0));
-		keyboard();
+		
 		transform = glm::translate(transform, glm::vec3(moveX, 0.0f, moveY) * dt);
 
 		//transform4 =  glm::translate(glm::mat4(1.0f), glm::vec3(3, 0.0f, glm::sin(static_cast<float>(thisFrame))));
@@ -209,6 +215,11 @@ int main() {
 		shader->SetUniformMatrix("u_ModelRotation", glm::mat3(transform));
 		theVAO->Render();
 
+		shader->Bind();
+		shader->SetUniformMatrix("u_ModelViewProjection", camera->GetViewProjection() * transform2);
+		shader->SetUniformMatrix("u_Model", transform2);
+		shader->SetUniformMatrix("u_ModelRotation", glm::mat3(transform2));
+		island1VAO->Render();
 
 		
 		shader->UnBind();
