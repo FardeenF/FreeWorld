@@ -51,7 +51,6 @@ bool initGLAD() {
 	}
 }
 
-
 GLfloat moveY = 0.0f;
 GLfloat moveX = 0.0f;
 
@@ -132,8 +131,8 @@ int main() {
 	glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 2.0f);
 	glm::vec3 lightCol = glm::vec3(50.0f, 20.0f, 10.0f);
 	float     lightAmbientPow = 0.1f;
-	float     lightSpecularPow = 10.0f;
 	glm::vec3 ambientCol = glm::vec3(20.0f);
+	float     lightSpecularPow = 10.0f;
 	float     ambientPow = 1.0f;
 	float     shininess = 1.2f;
 
@@ -172,6 +171,20 @@ int main() {
 	transform2 = glm::translate(transform, glm::vec3(0.0f, -10.0f, 0.0f));
 	transform2 = glm::scale(transform, glm::vec3(0.5f, 0.5f, 0.5f));
 
+	bool isFlipped = true;
+	KeyPressWatcher tKeyWatcher = KeyPressWatcher(GLFW_KEY_S, [&]() {
+		isFlipped = !isFlipped;
+		//transform = glm::scale(transform, glm::vec3(-1.0f, 1.0f, 1.0f));
+		transform = glm::translate(transform, glm::vec3(0.0f, -1.0f, 0.0f));
+		});
+
+	bool isFlipped2 = true;
+	KeyPressWatcher tKeyWatcher2 = KeyPressWatcher(GLFW_KEY_W, [&]() {
+		isFlipped2 = !isFlipped2;
+		//transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
+		transform = glm::translate(transform, glm::vec3(0.0f, 1.0f, 0.0f));
+		});
+
 	
 
 	// Run as long as the window is open
@@ -181,15 +194,19 @@ int main() {
 		double thisFrame = glfwGetTime();
 		float dt = static_cast<float>(thisFrame - lastFrame);
 
+		tKeyWatcher.Poll(window);
+		tKeyWatcher2.Poll(window);
 
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		{
 			transform = glm::translate(transform, glm::vec3(-3.0f, 0.0f, 0.0f) * dt);
 		}
+		
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 		{
 			transform = glm::translate(transform, glm::vec3(3.0f, 0.0f, 0.0f) * dt);
 		}
+		
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		{
 			moveY = 6;
@@ -198,14 +215,17 @@ int main() {
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		{
+
 			moveY = -6;
 			//transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 3.0f) * dt);
 			//rotX = 0.25;
 			rotY = 0.45;
 		}
 
+		
+
 		transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, -moveY) * dt);
-		transform = glm::rotate(transform, glm::radians(rotY), glm::vec3(0.0f, 1.0f, 0.0f));
+		transform = glm::rotate(transform, glm::radians(rotY), glm::vec3(0.0f, 1.0f, 0.0f) * dt);
 		transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, moveY) * dt);
 		rotY = 0;
 		moveY = 0;
